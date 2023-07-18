@@ -1,7 +1,5 @@
 library folder_tab;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'src/folder_tab.dart';
+export 'src/tab_model.dart';
+export 'src/folder_tab_configurator.dart';

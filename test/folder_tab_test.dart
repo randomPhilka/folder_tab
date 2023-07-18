@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:folder_tab/folder_tab.dart';
+import 'package:folder_tab/src/folder_tab.dart';
 
 void main() {
   test('adds one to input values', () {
