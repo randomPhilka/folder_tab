@@ -8,15 +8,15 @@ void main() {
 class ExamplePage extends StatelessWidget {
   ExamplePage({super.key});
 
-  final config = FolderTabConfigurator(initialTabIndex: 2);
+  final config = FolderTabConfigurator(initialTabIndex: 0);
   final tabs = [
     TabModel(
-     const Color(0xFF69B3D2),
+     const Color(0xFFED706C),
       'Test0',
       Placeholder(),
     ),
     TabModel(
-      const Color(0xFF896BC7),
+      const Color(0xFF383838),
       'Test1',
       Placeholder(),
     ),
@@ -26,12 +26,12 @@ class ExamplePage extends StatelessWidget {
     Placeholder(),
     ),
     TabModel(
-      const Color(0xFFED706C),
+      const Color(0xFF69B3D2),
       'Test3',
     Placeholder(),
     ),
     TabModel(
-      const Color(0xFF383838),
+      const Color(0xFF896BC7),
       'Test4',
     Placeholder(),
     ),
