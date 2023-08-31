@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:folder_tab/src/tab_model.dart';
 import 'package:folder_tab/src/folder_tab_configurator.dart';
+import 'dart:ui';
 
 enum SelectedTabPosition {
   left,
@@ -21,6 +22,7 @@ enum SelectedTabPosition {
 class FolderTabPainter extends CustomPainter {
   FolderTabConfigurator config;
   final List<TabModel> tabs;
+  double strokeWidth = 1.5;
 
   FolderTabPainter(this.config, this.tabs);
 
@@ -49,19 +51,20 @@ class FolderTabPainter extends CustomPainter {
     final roundedToRightTabs =
         tabsWithIndex.sublist(config.initialTabIndex + 1, tabsWithIndex.length).reversed.toList();
     final selelectedTab = tabsWithIndex[config.initialTabIndex];
-    // var tabsPath = Path();
 
     // Unselected round to Right Tabs drawing
     roundedToRightTabs.forEach((tab) {
-      Paint paint = _getPaintWith(tab.color.withOpacity(0.5));
       final isLastTab = tab.index == tabs.length - 1;
       final endYPoint = isLastTab ? tabSize.height + config.radius : tabSize.height;
       final startXPoint = tabSize.width * tab.index;
+
+      Paint paint = _getPaintWith(tab.color.withOpacity(0.5));
+
       var path = Path()
         ..moveTo(startXPoint - config.radius, 0)
         ..lineTo((startXPoint + tabSize.width) - config.radius, 0)
-        ..quadraticBezierTo(startXPoint + tabSize.width, 0,
-            startXPoint + tabSize.width, config.radius)
+        ..quadraticBezierTo(
+            startXPoint + tabSize.width, 0, startXPoint + tabSize.width, config.radius)
         ..lineTo(startXPoint + tabSize.width, endYPoint);
 
       canvas.drawPath(path, paint);
@@ -69,17 +72,41 @@ class FolderTabPainter extends CustomPainter {
 
     // Unselected round to Left Tabs drawing
     roundedToLeftTabs.forEach((tab) {
-      Paint paint = _getPaintWith(tab.color.withAlpha(127));
-      final isFirstTab = tab.index == 0;
+      Paint paint = _getPaintWith(tab.color.withOpacity(0.5));
+
+      var index = tab.index;
+      final isFirstTab = index == 0;
       final startYPoint = isFirstTab ? tabSize.height + config.radius : tabSize.height;
-      final startXPoint = tabSize.width * tab.index;
-      var path = Path()
+      final startXPoint = tabSize.width * index;
+
+      var drawPath = Path()
         ..moveTo(startXPoint, startYPoint)
         ..lineTo(startXPoint, config.radius)
         ..quadraticBezierTo(startXPoint, 0, startXPoint + config.radius, 0)
         ..lineTo(startXPoint + tabSize.width + config.radius, 0);
 
-      canvas.drawPath(path, paint);
+      // Crop line, if it not last tab
+      if (tab.index < roundedToLeftTabs.length - 1) {
+        final startClipYPoint = tab.index == 0 ? tabSize.height + config.radius : tabSize.height;
+        final startClipXPoint = tabSize.width * (tab.index + 1);
+
+        var clipPath = Path()
+          ..moveTo(startXPoint - strokeWidth, startYPoint - strokeWidth)
+          ..lineTo(startXPoint - strokeWidth, config.radius - strokeWidth)
+          ..quadraticBezierTo(startXPoint - strokeWidth, -strokeWidth,
+              startXPoint + config.radius - strokeWidth, -strokeWidth)
+          ..lineTo(startXPoint + tabSize.width + config.radius + strokeWidth, -strokeWidth)
+          ..quadraticBezierTo(startClipXPoint, 0, startClipXPoint, config.radius)
+          ..lineTo(startClipXPoint, startClipYPoint)
+          ..lineTo(tabSize.width * tab.index, startClipYPoint);
+
+        canvas.save();
+        canvas.clipPath(clipPath);
+        canvas.drawPath(drawPath, paint);
+        canvas.restore();
+      } else {
+        canvas.drawPath(drawPath, paint);
+      }
     });
 
     // Selected Tab drawing
@@ -96,8 +123,8 @@ class FolderTabPainter extends CustomPainter {
           ..lineTo(tabSize.width - config.radius, 0)
           ..quadraticBezierTo(tabSize.width, 0, tabSize.width, config.radius)
           ..lineTo(tabSize.width, tabSize.height - tabCornerRadiusSize.height)
-          ..quadraticBezierTo(
-              tabSize.width, tabSize.height, tabSize.width + tabCornerRadiusSize.width, tabSize.height)
+          ..quadraticBezierTo(tabSize.width, tabSize.height,
+              tabSize.width + tabCornerRadiusSize.width, tabSize.height)
           ..lineTo(size.width - config.radius, tabSize.height)
           ..quadraticBezierTo(
               size.width, tabSize.height, size.width, tabSize.height + config.radius);
@@ -107,11 +134,12 @@ class FolderTabPainter extends CustomPainter {
           ..moveTo(0, tabSize.height + config.radius)
           ..quadraticBezierTo(0, tabSize.height, config.radius, tabSize.height)
           ..lineTo(size.width - tabSize.width - tabCornerRadiusSize.width, tabSize.height)
-          ..quadraticBezierTo(
-              size.width - tabSize.width, tabSize.height, size.width - tabSize.width, tabSize.height - tabCornerRadiusSize.height)
+          ..quadraticBezierTo(size.width - tabSize.width, tabSize.height,
+              size.width - tabSize.width, tabSize.height - tabCornerRadiusSize.height)
           ..lineTo(size.width - tabSize.width, tabSize.height - config.radius)
-          ..quadraticBezierTo(size.width - tabSize.width, 0, size.width - (tabSize.width - config.radius), 0)
-           ..lineTo(size.width - config.radius, 0)
+          ..quadraticBezierTo(
+              size.width - tabSize.width, 0, size.width - (tabSize.width - config.radius), 0)
+          ..lineTo(size.width - config.radius, 0)
           ..quadraticBezierTo(size.width, 0, size.width, config.radius)
           ..lineTo(size.width, tabSize.height + config.radius);
         break;
@@ -125,8 +153,8 @@ class FolderTabPainter extends CustomPainter {
           ..lineTo(startXPoint, config.radius)
           ..quadraticBezierTo(startXPoint, 0, startXPoint + config.radius, 0)
           ..lineTo(startXPoint + (tabSize.width - config.radius), 0)
-          ..quadraticBezierTo(
-              startXPoint + tabSize.width, 0, startXPoint + tabSize.width, tabCornerRadiusSize.height)
+          ..quadraticBezierTo(startXPoint + tabSize.width, 0, startXPoint + tabSize.width,
+              tabCornerRadiusSize.height)
           ..lineTo(startXPoint + tabSize.width, tabSize.height - tabCornerRadiusSize.height)
           ..quadraticBezierTo(startXPoint + tabSize.width, tabSize.height,
               startXPoint + tabSize.width + tabCornerRadiusSize.width, tabSize.height)
